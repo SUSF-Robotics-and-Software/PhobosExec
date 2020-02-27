@@ -18,39 +18,39 @@ class PhobosExec:
     }
 
     def __init__(self, script_path):
-        """
+        '''
         Initialise executive
-        """
+        '''
 
         # ---------------------------------------------------------------------
         # STARTUP LOGGING SERVICE
         # ---------------------------------------------------------------------
 
         # Start by generating the timestamp for this session
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
         # Create the session directory
         self.session_path = create_session_dir(self.timestamp)
         if not self.session_path:
-            print("Error creating the session directory - cannot continue!")
+            print('Error creating the session directory - cannot continue!')
 
         # Now set the logger up to handle all calls from print, and redirect 
         # errors into stdout so they show up in the log file.
         sys.stdout = Logger(self.session_path)
         sys.stderr = sys.stdout
 
-        print(f"{'-'*80}\n")
-        print("PhobosExec\n")
-        print(f"Session ID: {self.timestamp}")
-        print(f"Session directory: {self.session_path}")
+        print(f'{"-"*80}\n')
+        print('PhobosExec\n')
+        print(f'Session ID: {self.timestamp}')
+        print(f'Session directory: {self.session_path}')
 
         # Get uname info - machine name, kernel version etc.
         uname_output = subprocess.run(['uname', '-a'], 
                                     stdout=subprocess.PIPE,
                                     universal_newlines=True)
-        print(f"Running on: {uname_output.stdout}")
+        print(f'Running on: {uname_output.stdout}')
 
-        print(f"\n{'-'*80}\n")
+        print(f'\n{"-"*80}\n')
 
         # Prety printer for printing the parameters
         self.pp = pprint.PrettyPrinter(indent=4)
@@ -60,29 +60,29 @@ class PhobosExec:
         # ---------------------------------------------------------------------
 
         if script_path:
-            print("Script path found, initialising the interpreter")
+            print('Script path found, initialising the interpreter')
             self.script = ScriptInterpreter(script_path)
         else:
-            print("No script path found")
+            print('No script path found')
             self.script = None
 
-        print(f"\n{'-'*80}\n")
+        print(f'\n{"-"*80}\n')
 
         # ---------------------------------------------------------------------
         # INITIALISE MODULES
         # ---------------------------------------------------------------------
 
-        print("Initialising modules...\n")
+        print('Initialising modules...\n')
 
         # TODO: Init comms module here, before we touch anything that might make
         # the rover move.
         # TODO: Should we still init comms if we're running a script?
 
         # Init LocoCtrl
-        print("LocomotionControl... ", end="")
+        print('LocomotionControl... ', end='')
         self.loco_ctrl = LocoCtrl.LocoCtrl()
-        print("done")
-        print("LocomotionControl.params: ")
+        print('done')
+        print('LocomotionControl.params: ')
         self.pp.pprint(self.loco_ctrl.params.raw)
 
         # TODO: Init electronics driver here (or maybe this will be done in 
@@ -98,10 +98,10 @@ class PhobosExec:
         self.ret_s = 0.0
 
     def main_loop(self):
-        """
+        '''
         Run the main loop of the executive, this function will not exit until
         the executive is supposed to stop running
-        """
+        '''
 
         # ---------------------------------------------------------------------
         # MAIN LOOP
@@ -110,8 +110,8 @@ class PhobosExec:
         # The main loop should run at 100 Hz, this is arbitrary and could be 
         # changed
         
-        print(f"\n{'-'*80}\n")
-        print("Starting main loop")
+        print(f'\n{"-"*80}\n')
+        print('Starting main loop')
 
         while self.run:
 
@@ -124,22 +124,22 @@ class PhobosExec:
 
                     # If the end of the script file set running to false
                     if cmd is None:
-                        print("End of script reached")
+                        print('End of script reached')
                         self.run = False
                     else:
                         # Branch based on command type:
-                        handler = self.cmd_handler_map.get(cmd['type'])
+                        handler = self.cmd_handler_map.get(cmd['type']) # pylint: disable=unsubscriptable-object
 
                         if handler:
-                            result = handler(self)
+                            result = handler(self, cmd)
                         else:
-                            print(f"Unkown command type '{cmd['type']}', "\
-                                   "making safe")
-                            result = cmd_safe(self)
+                            print(f'Unkown command type "{cmd["type"]}", ' \
+                                   'making safe') # pylint: disable=unsubscriptable-object
+                            result = cmd_safe(self, cmd)
             # Or if waiting for commands
             else:
                 # TODO: handle comms here, for now just quit since nothing to do
-                print("Can only run with script files right now")
+                print('Can only run with script files right now')
                 self.run = False
 
             # Sync cycles
@@ -148,7 +148,7 @@ class PhobosExec:
             if (sleep_duration_s > 0.0):
                 time.sleep(sleep_duration_s)
             else:
-                print("Cycle overrun")
+                print('Cycle overrun')
 
             # Increment elapsed time based on the current time after the sleep, 
             # so that the elapsed time clock doesn't drift too much compared to 
@@ -156,13 +156,13 @@ class PhobosExec:
             self.ret_s = self.ret_s \
                        + (datetime.now() - cycle_start).total_seconds()
 
-        print(f"Execution stopped, rover elapsed time = {self.ret_s:.2f} s")
+        print(f'Execution stopped, rover elapsed time = {self.ret_s:.2f} s')
 
 def create_session_dir(session_id):
-    """
+    '''
     Create the session directory to store all data from the execution, including
     archives, logs, and any images.
-    """
+    '''
 
     # ---- FIND SESSIONS FOLDER ----
     # To do this we get the current working directory, look for 'PhobosExec',
@@ -178,11 +178,11 @@ def create_session_dir(session_id):
     try:
         os.mkdir(session_path)
     except FileExistsError:
-        print(f"A session with this ID has already been found at {session_path}.")
+        print(f'A session with this ID has already been found at {session_path}.')
         return False
     except:
-        print("An unknown error occured while creating the session directory "
-              f"at {session_path}")
+        print('An unknown error occured while creating the session directory '
+              f'at {session_path}')
 
     # Create other directories
     archives_path = os.path.join(session_path, 'Archives')
@@ -192,7 +192,7 @@ def create_session_dir(session_id):
         os.mkdir(archives_path)
         os.mkdir(data_path)
     except:
-        print("An error occured while making the subdirectories for the session.")
+        print('An error occured while making the subdirectories for the session.')
         return False
         
     return session_path
