@@ -14,7 +14,10 @@ from script_interpreter import ScriptInterpreter
 class PhobosExec:
 
     cmd_handler_map = {
-        'NONE': cmd_none
+        'NONE': cmd_none,
+        'SAFE': cmd_safe,
+        'UNSAFE': cmd_unsafe,
+        'MNVR': cmd_mnvr
     }
 
     def __init__(self, script_path):
@@ -124,18 +127,24 @@ class PhobosExec:
 
                     # If the end of the script file set running to false
                     if cmd is None:
-                        print('End of script reached')
+                        print('\nEnd of script reached')
                         self.run = False
                     else:
                         # Branch based on command type:
                         handler = self.cmd_handler_map.get(cmd['type']) # pylint: disable=unsubscriptable-object
 
                         if handler:
+                            print(f'\n{self.ret_s:.2f}: new command: {cmd}')
+
                             result = handler(self, cmd)
                         else:
                             print(f'Unkown command type "{cmd["type"]}", ' \
                                    'making safe') # pylint: disable=unsubscriptable-object
                             result = cmd_safe(self, cmd)
+
+                        if not result:
+                            print('Error executing last command, making safe')
+                            cmd_safe(self, cmd)
             # Or if waiting for commands
             else:
                 # TODO: handle comms here, for now just quit since nothing to do

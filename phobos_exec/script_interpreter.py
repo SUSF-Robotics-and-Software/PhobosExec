@@ -19,14 +19,14 @@ class ScriptInterpreter:
         
         # Run the regex to find all matching commands, the magic regex pattern:
         #
-        #   ^\s*[^#]?(\d+(\.\d+)?)\s*:\s*([^;]*);
+        #   ^\s*(\d+(\.\d+)?)\s*:\s*([^;]*);
         #
-        # First matches a line with any amount of leading whitespace which does 
-        # not have a hash at the start. Then it looks for a properly formatted 
-        # time (integer or decimal), then more optional whitespace before a 
-        # colon. After the colon any character except semicolons are allowed, 
-        # this is where the JSON goes. Finally we match a semicolon.
-        cmd_matches = re.findall(r'^\s*[^#]?(\d+(\.\d+)?)\s*:\s*([^;]*);', 
+        # First matches a line with any amount of leading whitespace. Then it 
+        # looks for a properly formatted time (integer or decimal), then more 
+        # optional whitespace before a colon. After the colon any character 
+        # except semicolons are allowed, this is where the JSON goes. Finally we
+        # match a semicolon to end the command
+        cmd_matches = re.findall(r'^\s*(\d+(\.\d+)?)\s*:\s*([^;]*);', 
                                  script_str, flags=re.MULTILINE)
 
         # Loop through all matches adding them to the exec timeline
