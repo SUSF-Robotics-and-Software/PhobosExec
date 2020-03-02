@@ -1,3 +1,6 @@
+'''
+Simple logger class for use in the exec.
+'''
 import sys
 import os.path
 
@@ -11,7 +14,13 @@ class Logger(object):
     sys.stdout = Logger('PATH/TO/SESSION')
     ```
     '''
+
     def __init__(self, session_path):
+        '''
+        Initialise the logger.
+
+        `session_path` - The path to which 
+        '''
         self.terminal = sys.stdout
         log_path = os.path.join(session_path, 'PhobosExec.log')
         self.log = open(log_path, 'w+')
